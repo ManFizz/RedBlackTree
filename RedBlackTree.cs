@@ -1,10 +1,11 @@
 ﻿using System;
 
-
 namespace BlackRedTree
 {
     class RedBlackTree
     {
+        public Node root;
+
         ~RedBlackTree()
         {
             RecDestruct(root);
@@ -19,91 +20,7 @@ namespace BlackRedTree
             Delete(x);
         }
 
-        public Node root;
-
-        public Node Find(Key key)
-        {
-            Node temp = root;
-            while (temp)
-            {
-                if (key < temp.data)
-                    temp = temp.left;
-
-                if (key > temp.data)
-                    temp = temp.right;
-
-                if (key == temp.data)
-                    return temp;
-            }
-
-            return null;
-        }
-
         #region Insert
-
-        private void InsertFixUp(Node item)
-        {
-            // x and y are used as variable names for brevity, in a more formal
-            // implementation, you should probably change the names
-
-            // maintain red-black tree properties after adding newNode
-            while (item != root && item.Parent.Color == Color.Red)
-            {
-                // Parent node is .Colored red; 
-                Node workNode;
-                if (item.Parent == item.Parent.Parent.left) // determine traversal path			
-                {                                       // is it on the left or right subtree?
-                    workNode = item.Parent.Parent.right;            // get uncle
-                    if (workNode != null && workNode.Color == Color.Red)
-                    {   // uncle is red; change x's Parent and uncle to black
-                        item.Parent.Color = Color.Black;
-                        workNode.Color = Color.Black;
-                        // grandParent must be red. Why? Every red node that is not 
-                        // a leaf has only black children 
-                        item.Parent.Parent.Color = Color.Red;
-                        item = item.Parent.Parent;  // continue loop with grandParent
-                    }
-                    else
-                    {
-                        // uncle is black; determine if newNode is greater than Parent
-                        if (item == item.Parent.right)
-                        {   // yes, newNode is greater than Parent; rotate left
-                            // make newNode a left child
-                            item = item.Parent;
-                            leftRotate(item);
-                        }
-                        // no, newNode is less than Parent
-                        item.Parent.Color = Color.Black; // make Parent black
-                        item.Parent.Parent.Color = Color.Red;        // make grandParent black
-                        rightRotate(item.Parent.Parent);                    // rotate right
-                    }
-                }
-                else
-                {   // newNode's Parent is on the right subtree
-                    // this code is the same as above with "left" and "right" swapped
-                    workNode = item.Parent.Parent.left;
-                    if (workNode != null && workNode.Color == Color.Red)
-                    {
-                        item.Parent.Color = Color.Black;
-                        workNode.Color = Color.Black;
-                        item.Parent.Parent.Color = Color.Red;
-                        item = item.Parent.Parent;
-                    }
-                    else
-                    {
-                        if (item == item.Parent.left)
-                        {
-                            item = item.Parent;
-                            rightRotate(item);
-                        }
-                        item.Parent.Color = Color.Black;
-                        item.Parent.Parent.Color = Color.Red;
-                        leftRotate(item.Parent.Parent);
-                    }
-                }
-            }
-            root.Color = Color.Black;       // rbTree should always be black
-        }
 
         public void Insert(Key itemKey)
         {
@@ -130,7 +47,7 @@ namespace BlackRedTree
                 else
                     X = X.right;
             }
-            z.Parent = Y;
+            z.parent = Y;
             if (Y == null)
                 root = z;
             else if (z.data < Y.data)
@@ -143,91 +60,113 @@ namespace BlackRedTree
             InsertFixUp(z);
         }
 
+        private void InsertFixUp(Node z)
+        {
+            while (z != root && z.parent.Color == Color.Red)
+            {
+                Node y;
+                if (z.parent == z.parent.parent.left)	
+                {
+                    y = z.parent.parent.right;
+                    if (y != null && y.Color == Color.Red)
+                    {
+                        z.parent.Color = Color.Black;
+                        y.Color = Color.Black;
+                        z.parent.parent.Color = Color.Red;
+                        z = z.parent.parent;
+                    }
+                    else
+                    {
+                        if (z == z.parent.right)
+                        {
+                            z = z.parent;
+                            leftRotate(z);
+                        }
+                        z.parent.Color = Color.Black;
+                        z.parent.parent.Color = Color.Red;
+                        rightRotate(z.parent.parent);
+                    }
+                }
+                else
+                {
+                    y = z.parent.parent.left;
+                    if (y != null && y.Color == Color.Red)
+                    {
+                        z.parent.Color = Color.Black;
+                        y.Color = Color.Black;
+                        z.parent.parent.Color = Color.Red;
+                        z = z.parent.parent;
+                    }
+                    else
+                    {
+                        if (z == z.parent.left)
+                        {
+                            z = z.parent;
+                            rightRotate(z);
+                        }
+                        z.parent.Color = Color.Black;
+                        z.parent.parent.Color = Color.Red;
+                        leftRotate(z.parent.parent);
+                    }
+                }
+            }
+            root.Color = Color.Black;
+        }
+
         #endregion
 
         #region Rotates
-        private void rightRotate(Node rotateNode)
+
+        private void leftRotate(Node X)
         {
+            Node Y = X.right;
+            X.right = Y.left;
 
-            Node workNode = rotateNode.left;
-            rotateNode.left = workNode.right;
+            if (Y.left != null)
+                Y.left.parent = X;
 
-            if (workNode.right != null)
-                workNode.right.Parent = rotateNode;
+            if (Y != null)
+                Y.parent = X.parent;
 
-            if (workNode != null)
-                workNode.Parent = rotateNode.Parent;
-
-            if (rotateNode.Parent != null)
-            {
-                if (rotateNode == rotateNode.Parent.right)
-                    rotateNode.Parent.right = workNode;
-                else
-                    rotateNode.Parent.left = workNode;
-            }
+            if (X.parent == null)
+                root = Y;
+            else if (X == X.parent.left)
+                X.parent.left = Y;
             else
-                root = workNode;
+                X.parent.right = Y;
 
-            workNode.right = rotateNode;
-            if (rotateNode != null)
-                rotateNode.Parent = workNode;
+            Y.left = X;
+            if (X != null)
+                X.parent = Y;
+
         }
 
-        private void leftRotate(Node rotateNode)
+        private void rightRotate(Node Y)
         {
-            Node workNode = rotateNode.right;
-            rotateNode.right = workNode.left;
+            Node X = Y.left;
+            Y.left = X.right;
+            if (X.right != null)
+                X.right.parent = Y;
 
-            if (workNode.left != null)
-                workNode.left.Parent = rotateNode;
+            if (X != null)
+                X.parent = Y.parent;
 
-            if (workNode != null)
-                workNode.Parent = rotateNode.Parent;
-
-            if (rotateNode.Parent != null)
-            {
-                if (rotateNode == rotateNode.Parent.left)
-                    rotateNode.Parent.left = workNode;
-                else
-                    rotateNode.Parent.right = workNode;
-            }
+            if (Y.parent == null)
+                root = X;
+            else if (Y == Y.parent.right)
+                Y.parent.right = X;
             else
-                root = workNode;
+                Y.parent.left = X;
 
-            workNode.left = rotateNode;
-            if (rotateNode != null)
-                rotateNode.Parent = workNode;
+            X.right = Y;//put Y on X's right
+            if (Y != null)
+            {
+                Y.parent = X;
+            }
         }
         #endregion
 
         #region Delete
-
-        private static Node Maximum(Node X)
-        {
-            while (X.right)
-                X = X.right;
-
-            return X ? X : Minimum(X);
-        }
-
-        private static Node Minimum(Node X)
-        {
-            while (X.left)
-                X = X.left;
-
-            return X ? X : Maximum(X);
-        }
-
-        public void Transplant(Node u, Node v)
-        {
-            if (u.Parent == null)
-                root = v;
-            else if (u == u.Parent.left)
-                u.Parent.left = v;
-            else u.Parent.right = v;
-            if (v)
-                v.Parent = u.Parent;
-        }
 
         public bool Delete(Key key)
         {
@@ -235,6 +174,30 @@ namespace BlackRedTree
             bool bOut = z;
             Delete(z);
             return bOut;
+        }
+
+
+        private Node Minimum(Node X)
+        {
+            Node Y = null;
+            while (X) 
+            {
+                Y = X;
+                X = X.left;
+            }
+            return Y;
+        }
+
+        private void Transplant(Node u, Node v)
+        {
+            if (!u.parent)
+                root = v;
+            else if (u == u.parent.left)
+                u.parent.left = v;
+            else
+                u.parent.right = v;
+            if(v)   
+                v.parent = u.parent;
         }
 
         public void Delete(Node z)
@@ -248,11 +211,7 @@ namespace BlackRedTree
             Node y = z;
             Node x;
             Color y_original_Color = y.Color;
-            if (z.left == null && z.right == null)
-            {
-                x = z;
-            }
-            else if (z.left == null)
+            if (z.left == null)
             {
                 x = z.right;
                 Transplant(z, z.right);
@@ -267,21 +226,21 @@ namespace BlackRedTree
                 y = Minimum(z.right); //Без проверок возможна бесконечная рекурсия
                 y_original_Color = y.Color;
                 x = y.right;
-                if (y.Parent == z)
-                    x.Parent = y;
+                if (y.parent == z)
+                    x.parent = y;
                 else
                 {
                     Transplant(y, y.right);
                     y.right = z.right;
-                    y.right.Parent = y;
+                    y.right.parent = y;
                 }
                 Transplant(z, y);
                 y.left = z.left;
-                y.left.Parent = y;
+                y.left.parent = y;
                 y.Color = z.Color;
             }
 
-            if (y_original_Color == Color.Black)
+            if (y_original_Color == Color.Black && x)
                 DeleteFixUp(x);
 
             return;
@@ -289,84 +248,89 @@ namespace BlackRedTree
 
         private void DeleteFixUp(Node X)
         {
-            while (X != null && X != root && X.Color == Color.Black)
+            while (X != root && X.Color == Color.Black)
             {
-                if (X == X.Parent.left)
+                if (X == X.parent.left)
                 {
-                    Node W = X.Parent.right;
-                    if (W.Color == Color.Red)
+                    Node Y = X.parent.right;
+                    if (Y.Color == Color.Red)
                     {
-                        W.Color = Color.Black;
-                        X.Parent.Color = Color.Red;
-                        leftRotate(X.Parent);
-                        W = X.Parent.right;
+                        Y.Color = Color.Black;
+                        X.parent.Color = Color.Red;
+                        leftRotate(X.parent);
+                        Y = X.parent.right;
                     }
-                    if (W.left.Color == Color.Black && W.right.Color == Color.Black)
+                    if (Y.left.Color == Color.Black && Y.right.Color == Color.Black)
                     {
-                        W.Color = Color.Red;
-                        X = X.Parent;
+                        Y.Color = Color.Red;
+                        X = X.parent;
                     }
-                    else if (W.right.Color == Color.Black)
+                    else
                     {
-                        W.left.Color = Color.Black;
-                        W.Color = Color.Red;
-                        rightRotate(W);
-                        W = X.Parent.right;
+                        if (Y.right.Color == Color.Black)
+                        {
+                            Y.left.Color = Color.Black;
+                            Y.Color = Color.Red;
+                            rightRotate(Y);
+                            Y = X.parent.right;
+                        }
+                        Y.Color = X.parent.Color;
+                        X.parent.Color = Color.Black;
+                        Y.right.Color = Color.Black;
+                        leftRotate(X.parent);
+                        X = root;
                     }
-                    W.Color = X.Parent.Color;
-                    X.Parent.Color = Color.Black;
-                    W.right.Color = Color.Black;
-                    leftRotate(X.Parent);
-                    X = root;
                 }
                 else
                 {
-                    Node W = X.Parent.left;
-                    if (W.Color == Color.Red)
+                    Node Y = X.parent.left;
+                    if (Y.Color == Color.Red)
                     {
-                        W.Color = Color.Black;
-                        X.Parent.Color = Color.Red;
-                        rightRotate(X.Parent);
-                        W = X.Parent.left;
+                        Y.Color = Color.Black;
+                        X.parent.Color = Color.Red;
+                        rightRotate(X.parent);
+                        Y = X.parent.left;
                     }
-                    if (W.right.Color == Color.Black && W.left.Color == Color.Black)
+                    if (Y.right.Color == Color.Black && Y.left.Color == Color.Black)
                     {
-                        W.Color = Color.Black;
-                        X = X.Parent;
+                        Y.Color = Color.Black;
+                        X = X.parent;
                     }
-                    else if (W.left.Color == Color.Black)
+                    else
                     {
-                        W.right.Color = Color.Black;
-                        W.Color = Color.Red;
-                        leftRotate(W);
-                        W = X.Parent.left;
+                        if (Y.left.Color == Color.Black)
+                        {
+                            Y.right.Color = Color.Black;
+                            Y.Color = Color.Red;
+                            leftRotate(Y);
+                            Y = X.parent.left;
+                        }
+                        Y.Color = X.parent.Color;
+                        X.parent.Color = Color.Black;
+                        Y.left.Color = Color.Black;
+                        rightRotate(X.parent);
+                        X = root;
                     }
-                    W.Color = X.Parent.Color;
-                    X.Parent.Color = Color.Black;
-                    W.left.Color = Color.Black;
-                    rightRotate(X.Parent);
-                    X = root;
                 }
             }
-            if (X)
-                X.Color = Color.Black;
+            X.Color = Color.Black;
         }
+
         #endregion
 
         #region Display
 
-        public void DisplayTree()
+        public void DisplayTree(bool all = false)
         {
-            Display(root, Console.BufferWidth / 2, Console.BufferWidth / 2, 0, 4);
-            /*
-            Console.WriteLine("Tree");
-            Draw(root);
-            Console.WriteLine();
-            Console.WriteLine("InCenterrightDisplay"); InCenterrightDisplay(root); Console.WriteLine('\n');
-            Console.WriteLine("InCenterleftDisplay"); InCenterleftDisplay(root); Console.WriteLine('\n');
-            Console.WriteLine("InOrderDisplay"); InOrderDisplay(root); Console.WriteLine('\n');
-            Console.WriteLine("InReverseDisplay"); InReverseDisplay(root); Console.WriteLine('\n');*/
-
+            int k = Display(root, Console.BufferWidth / 2, Console.BufferWidth / 2, 0, 4);
+            Console.SetCursorPosition(0, k-1);
+            if (all)
+            {
+                Console.WriteLine("InCenterrightDisplay"); InCenterrightDisplay(root); Console.WriteLine('\n');
+                Console.WriteLine("InCenterleftDisplay"); InCenterleftDisplay(root); Console.WriteLine('\n');
+                Console.WriteLine("InOrderDisplay"); InOrderDisplay(root); Console.WriteLine('\n');
+                Console.WriteLine("InReverseDisplay"); InReverseDisplay(root); Console.WriteLine('\n');
+            }
         }
 
         private void InCenterrightDisplay(Node current) //Центрированный обход 
@@ -409,70 +373,57 @@ namespace BlackRedTree
             Console.Write("(" + current + ") ");
         }
 
-        public void Draw(Node n, String prefix = "", bool isleft = false, bool hasright = false)
+        private int Display(Node node, int offset = 10, int x = 20, int y = 0, int lineoffset = 2)
         {
-            if (n != null)
-            {
-                Console.Write(prefix + (isleft && hasright ? "╠═ " : "╚═ "));
-                Console.ForegroundColor = n.Color == Color.Red ? ConsoleColor.Red : ConsoleColor.White;
-                Console.WriteLine((string)n);
-                Console.ForegroundColor = ConsoleColor.White;
-                Draw(n.left, prefix + (isleft ? "║  " : "   "), true, n.right);
-                Draw(n.right, prefix + (isleft ? "║  " : "   "), false);
-            }
-        }
+            if (!node)
+                return y;
 
-        private void Display(Node node, int offset = 10, int x = 20, int y = 0, int lineoffset = 2)
-        {
-            Console.SetCursorPosition(x, y + 1);
-            Console.ForegroundColor = ConsoleColor.Blue;
-            if (node.right != null && node.left != null)
-            {
-                Console.WriteLine("│");
-                Console.SetCursorPosition(x, y + 2);
-                Console.WriteLine("┴");
-            }
-            if (node.right != null && node.left == null)
-            {
-                Console.WriteLine("│");
-                Console.SetCursorPosition(x, y + 2);
-                Console.WriteLine("└");
-            }
-            if (node.right == null && node.left != null)
-            {
-                Console.WriteLine("│");
-                Console.SetCursorPosition(x, y + 2);
-                Console.WriteLine("┘");
-            }
+            Console.SetCursorPosition(x, y + 1); //For change Color
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
 
-            for (int i = 0; i < offset / 2 - 1; i++)
+            if (node.right || node.left)
             {
-                if (node.right == null && node.left != null)
+                Console.WriteLine("│");
+                Console.SetCursorPosition(x, y + 2);
+                if (node.right && node.left)
+                    Console.WriteLine("┴");
+
+                if (node.right && !node.left)
+                    Console.WriteLine("└");
+
+                if (!node.right && node.left)
+                    Console.WriteLine("┘");
+
+                for (int i = 0; i < offset / 2 - 1; i++)
                 {
-                    Console.SetCursorPosition(x - i - 1, y + 2);
-                    Console.WriteLine("─");
-                    if (i == offset / 2 - 2)
+                    if (!node.right && node.left)
                     {
-                        Console.SetCursorPosition(x - offset / 2 + 1, y + 2);
-                        Console.WriteLine("┌");
-                        Console.SetCursorPosition(x - offset / 2 + 1, y + 3);
-                        Console.WriteLine("│");
+                        Console.SetCursorPosition(x - i - 1, y + 2);
+                        Console.WriteLine("─");
+                        if (i == offset / 2 - 2)
+                        {
+                            Console.SetCursorPosition(x - offset / 2 + 1, y + 2);
+                            Console.WriteLine("┌");
+                            Console.SetCursorPosition(x - offset / 2 + 1, y + 3);
+                            Console.WriteLine("│");
+                        }
+                        continue;
                     }
-                }
-                if (node.right != null && node.left == null)
-                {
-                    Console.SetCursorPosition(x + i + 1, y + 2);
-                    Console.WriteLine("─");
-                    if (i == offset / 2 - 2)
+
+                    if (node.right && !node.left)
                     {
-                        Console.SetCursorPosition(x + offset / 2, y + 2);
-                        Console.WriteLine("┐");
-                        Console.SetCursorPosition(x + offset / 2, y + 3);
-                        Console.WriteLine("│");
+                        Console.SetCursorPosition(x + i + 1, y + 2);
+                        Console.WriteLine("─");
+                        if (i == offset / 2 - 2)
+                        {
+                            Console.SetCursorPosition(x + offset / 2, y + 2);
+                            Console.WriteLine("┐");
+                            Console.SetCursorPosition(x + offset / 2, y + 3);
+                            Console.WriteLine("│");
+                        }
+                        continue;
                     }
-                }
-                if (node.right != null && node.left != null)
-                {
+
                     Console.SetCursorPosition(x - i - 1, y + 2);
                     Console.WriteLine("─");
                     if (i == offset / 2 - 2)
@@ -496,20 +447,34 @@ namespace BlackRedTree
                 }
             }
 
-            Console.SetCursorPosition(x, y);
-            Console.ForegroundColor = node.Color == Color.Red ? ConsoleColor.Red : ConsoleColor.White;
+            Console.SetCursorPosition(x-3, y);
+            Console.ForegroundColor = node.Color == Color.Red ? ConsoleColor.DarkRed : ConsoleColor.White;
             Console.Write(node.data);
-            offset /= 2;
 
-            if (node.left != null)
-            {
-                Display(node.left, offset, x - offset, y + lineoffset, lineoffset);
-            }
-            if (node.right != null)
-            {
-                Display(node.right, offset, x + offset, y + lineoffset, lineoffset);
-            }
+            offset /= 2;
+            int k = Display(node.left, offset, x - offset, y + lineoffset, lineoffset);
+            int c = Display(node.right, offset, x + offset, y + lineoffset, lineoffset);
+            return k > c ? k : c;
         }
         #endregion
+
+        public Node Find(Key key)
+        {
+            Node temp = root;
+            while (temp)
+            {
+                if (key < temp.data)
+                    temp = temp.left;
+
+                if (key > temp.data)
+                    temp = temp.right;
+
+                if (key == temp.data)
+                    return temp;
+            }
+
+            return null;
+        }
+
     }
 }

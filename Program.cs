@@ -15,7 +15,6 @@ namespace BlackRedTree
     {
         static void Main(string[] args)
         {
-
             Console.SetWindowSize(Console.LargestWindowWidth, Console.LargestWindowHeight);
             RedBlackTree tree = new RedBlackTree();
             using (StreamReader sr = File.OpenText("C:\\Users\\Mak\\source\\repos\\BlackRedTree\\input.txt"))
@@ -28,6 +27,8 @@ namespace BlackRedTree
             }
 
             tree.DisplayTree();
+            Console.ReadLine();
+            Console.Clear();
 
             while (tree.root)
             {

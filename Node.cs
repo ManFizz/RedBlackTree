@@ -13,20 +13,18 @@ namespace BlackRedTree
                 k++;
                 p = p.prev;
             }
-            return node.data + (k != 0 ? " [" + (1 + k).ToString() + ']' : "") + " " + GetLevel(node.right) + "/" + GetLevel(node.left);
+            return node.data + (k != 0 ? " [" + (1 + k).ToString() + ']' : "");
         }
 
-        public static int GetLevel(Node n)
+        public int GetLevel()
         {
             int k = 0;
-            if (n)
+            Node n = this;
+            while (n)
             {
-                while (n)
-                {
-                    if (n.Color == Color.Black)
-                        k++;
-                    n = n.left;
-                }
+                if (n.Color == Color.Black)
+                    k++;
+                n = n.parent;
             }
             return k;
         }
@@ -55,7 +53,7 @@ namespace BlackRedTree
         //Node AVL
         public Node left;
         public Node right;
-        public Node Parent;
+        public Node parent;
         public Key data;
 
         //Initialization
@@ -65,7 +63,7 @@ namespace BlackRedTree
 
         //Func
         public static implicit operator bool(Node x) { return x != null; }
-        public int Height() { return this.Parent ? this.Parent.Height() + 1 : 1; }
+        public int Height() { return this.parent ? this.parent.Height() + 1 : 1; }
 
     }
 }
