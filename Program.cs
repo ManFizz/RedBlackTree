@@ -17,26 +17,27 @@ namespace BlackRedTree
         {
             Console.SetWindowSize(Console.LargestWindowWidth, Console.LargestWindowHeight);
             RedBlackTree tree = new RedBlackTree();
-            using (StreamReader sr = File.OpenText("C:\\Users\\Mak\\source\\repos\\BlackRedTree\\input.txt"))
-            {
-                string s;
-                while ((s = sr.ReadLine()) != null)
-                {
-                    tree.Insert(s);
-                }
-            }
+            for (int i = 15; i > 0; i--)
+                tree.Insert(i+".00.00");
 
-            tree.DisplayTree();
-            Console.ReadLine();
-            Console.Clear();
-
-            while (tree.root)
+            do
             {
-                tree.Delete(tree.root);
                 tree.DisplayTree();
                 Console.ReadLine();
                 Console.Clear();
-            }
+                tree.Delete(tree.root);
+            } while (tree.root != tree.sentinel);
+
+            for (int i = 1; i <= 15; i++)
+                tree.Insert(i + ".00.00");
+
+            do
+            {
+                tree.DisplayTree();
+                Console.ReadLine();
+                Console.Clear();
+                tree.Delete(tree.root);
+            } while (tree.root != tree.sentinel);
         }
     }
 }

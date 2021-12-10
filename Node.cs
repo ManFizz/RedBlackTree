@@ -57,9 +57,26 @@ namespace BlackRedTree
         public Key data;
 
         //Initialization
-        public Node(Key data) { this.data = data; }
-        public Node(Color Color) { this.Color = Color; }
-        public Node(Key data, Color Color) { this.data = data; this.Color = Color; }
+        public Node(Key data) 
+        { 
+            this.data = data;
+        }
+
+        public Node(Color Color) 
+        { 
+            this.Color = Color; 
+        }
+
+        public Node(Key data, Color Color) 
+        { 
+            this.data = data; this.Color = Color; 
+        }
+
+        public Node(Node parent, Color Color) 
+        {
+            this.parent = parent;
+            this.Color = Color;
+        }
 
         //Func
         public static implicit operator bool(Node x) { return x != null; }

@@ -6,6 +6,14 @@ namespace BlackRedTree
     {
         public Node root;
 
+        public Node sentinel;
+
+        public RedBlackTree()
+        {
+            root = sentinel = new Node(root, Color.Black);
+            root.left = root.right = sentinel;
+        }
+
         ~RedBlackTree()
         {
             RecDestruct(root);
@@ -25,16 +33,20 @@ namespace BlackRedTree
         public void Insert(Key itemKey)
         {
             Node z = new Node(itemKey);
-            if (root == null)
+            if (root == sentinel)
             {
                 root = z;
+                root.parent = sentinel;
+                root.left = sentinel;
+                root.right = sentinel;
                 root.Color = Color.Black;
                 return;
             }
 
-            Node Y = null;
+            Node Y = sentinel;
             Node X = root;
-            while (X != null)
+
+            while (X != sentinel)
             {
                 Y = X;
                 if (z.data < X.data)
@@ -48,14 +60,16 @@ namespace BlackRedTree
                     X = X.right;
             }
             z.parent = Y;
-            if (Y == null)
+            if (Y == sentinel)
                 root = z;
             else if (z.data < Y.data)
                 Y.left = z;
             else
                 Y.right = z;
-            z.left = null;
-            z.right = null;
+
+            z.left = sentinel;
+            z.right = sentinel;
+
             z.Color = Color.Red;
             InsertFixUp(z);
         }
@@ -122,13 +136,12 @@ namespace BlackRedTree
             Node Y = X.right;
             X.right = Y.left;
 
-            if (Y.left != null)
+            if (Y.left != sentinel)
                 Y.left.parent = X;
 
-            if (Y != null)
-                Y.parent = X.parent;
+            Y.parent = X.parent;
 
-            if (X.parent == null)
+            if (X.parent == sentinel)
                 root = Y;
             else if (X == X.parent.left)
                 X.parent.left = Y;
@@ -136,8 +149,7 @@ namespace BlackRedTree
                 X.parent.right = Y;
 
             Y.left = X;
-            if (X != null)
-                X.parent = Y;
+            X.parent = Y;
 
         }
 
@@ -145,24 +157,20 @@ namespace BlackRedTree
         {
             Node X = Y.left;
             Y.left = X.right;
-            if (X.right != null)
+            if (X.right != sentinel)
                 X.right.parent = Y;
 
-            if (X != null)
-                X.parent = Y.parent;
+            X.parent = Y.parent;
 
-            if (Y.parent == null)
+            if (Y.parent == sentinel)
                 root = X;
             else if (Y == Y.parent.right)
                 Y.parent.right = X;
             else
                 Y.parent.left = X;
 
-            X.right = Y;//put Y on X's right
-            if (Y != null)
-            {
-                Y.parent = X;
-            }
+            X.right = Y;
+            Y.parent = X;
         }
         #endregion
 
@@ -171,16 +179,18 @@ namespace BlackRedTree
         public bool Delete(Key key)
         {
             Node z = Find(key);
-            bool bOut = z;
-            Delete(z);
-            return bOut;
+            if (z != sentinel)
+            {
+                Delete(z);
+                return true;
+            }
+            return false;
         }
-
 
         private Node Minimum(Node X)
         {
-            Node Y = null;
-            while (X) 
+            Node Y = sentinel;
+            while (X != sentinel) 
             {
                 Y = X;
                 X = X.left;
@@ -190,7 +200,7 @@ namespace BlackRedTree
 
         private void Transplant(Node u, Node v)
         {
-            if (!u.parent)
+            if (u.parent == sentinel)
                 root = v;
             else if (u == u.parent.left)
                 u.parent.left = v;
@@ -211,12 +221,12 @@ namespace BlackRedTree
             Node y = z;
             Node x;
             Color y_original_Color = y.Color;
-            if (z.left == null)
+            if (z.left == sentinel)
             {
                 x = z.right;
                 Transplant(z, z.right);
             }
-            else if (z.right == null)
+            else if (z.right == sentinel)
             {
                 x = z.left;
                 Transplant(z, z.left);
@@ -240,10 +250,8 @@ namespace BlackRedTree
                 y.Color = z.Color;
             }
 
-            if (y_original_Color == Color.Black && x)
+            if (y_original_Color == Color.Black)
                 DeleteFixUp(x);
-
-            return;
         }
 
         private void DeleteFixUp(Node X)
@@ -293,7 +301,7 @@ namespace BlackRedTree
                     }
                     if (Y.right.Color == Color.Black && Y.left.Color == Color.Black)
                     {
-                        Y.Color = Color.Black;
+                        Y.Color = Color.Red;
                         X = X.parent;
                     }
                     else
@@ -335,7 +343,7 @@ namespace BlackRedTree
 
         private void InCenterrightDisplay(Node current) //Центрированный обход 
         {
-            if (!current)
+            if (current == sentinel)
                 return;
 
             InCenterrightDisplay(current.right);
@@ -345,7 +353,7 @@ namespace BlackRedTree
 
         private void InCenterleftDisplay(Node current) //Центрированный обход 
         {
-            if (!current)
+            if (current == sentinel)
                 return;
 
             InCenterleftDisplay(current.left);
@@ -355,7 +363,7 @@ namespace BlackRedTree
 
         private void InOrderDisplay(Node current) //Прямой обход
         {
-            if (!current)
+            if (current == sentinel)
                 return;
 
             Console.Write("(" + current + ") ");
@@ -365,7 +373,7 @@ namespace BlackRedTree
 
         private void InReverseDisplay(Node current) //Обратный обход
         {
-            if (!current)
+            if (current == sentinel)
                 return;
 
             InReverseDisplay(current.left);
@@ -375,28 +383,28 @@ namespace BlackRedTree
 
         private int Display(Node node, int offset = 10, int x = 20, int y = 0, int lineoffset = 2)
         {
-            if (!node)
+            if (node == sentinel)
                 return y;
 
             Console.SetCursorPosition(x, y + 1); //For change Color
             Console.ForegroundColor = ConsoleColor.DarkBlue;
 
-            if (node.right || node.left)
+            if (node.right != sentinel || node.left != sentinel)
             {
                 Console.WriteLine("│");
                 Console.SetCursorPosition(x, y + 2);
-                if (node.right && node.left)
+                if (node.right != sentinel && node.left != sentinel)
                     Console.WriteLine("┴");
 
-                if (node.right && !node.left)
+                if (node.right != sentinel && node.left == sentinel)
                     Console.WriteLine("└");
 
-                if (!node.right && node.left)
+                if (node.right == sentinel && node.left != sentinel)
                     Console.WriteLine("┘");
 
                 for (int i = 0; i < offset / 2 - 1; i++)
                 {
-                    if (!node.right && node.left)
+                    if (node.right == sentinel && node.left != sentinel)
                     {
                         Console.SetCursorPosition(x - i - 1, y + 2);
                         Console.WriteLine("─");
@@ -410,7 +418,7 @@ namespace BlackRedTree
                         continue;
                     }
 
-                    if (node.right && !node.left)
+                    if (node.right != sentinel && node.left == sentinel)
                     {
                         Console.SetCursorPosition(x + i + 1, y + 2);
                         Console.WriteLine("─");
@@ -461,7 +469,7 @@ namespace BlackRedTree
         public Node Find(Key key)
         {
             Node temp = root;
-            while (temp)
+            while (temp != sentinel)
             {
                 if (key < temp.data)
                     temp = temp.left;
@@ -473,7 +481,7 @@ namespace BlackRedTree
                     return temp;
             }
 
-            return null;
+            return sentinel;
         }
 
     }
